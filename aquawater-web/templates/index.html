@@ -1,0 +1,282 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AquaWater 调洪演算程序</title>
+    <link rel="stylesheet" href="/static/css/style.css">
+    <script src="https://cdn.jsdelivr.net/npm/echarts@5.6.0/dist/echarts.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+</head>
+<body>
+    <!-- 顶部导航栏 -->
+    <header class="app-header">
+        <div class="header-left">
+            <h1 class="app-title">AquaWater 调洪演算程序</h1>
+            <span class="app-version">v2.0 Web</span>
+        </div>
+        <div class="header-right">
+            <div class="progress-steps" id="progressSteps">
+                <span class="step" data-step="1"><span class="step-dot"></span>数据导入</span>
+                <span class="step-arrow">→</span>
+                <span class="step" data-step="2"><span class="step-dot"></span>参数设置</span>
+                <span class="step-arrow">→</span>
+                <span class="step" data-step="3"><span class="step-dot"></span>计算结果</span>
+            </div>
+        </div>
+    </header>
+
+    <!-- 主布局 -->
+    <div class="main-container">
+        <!-- 左侧面板 -->
+        <aside class="left-panel" id="leftPanel">
+            <!-- 数据导入区 -->
+            <section class="panel-section" id="sectionData">
+                <div class="section-header">
+                    <h2>① 数据导入</h2>
+                    <span class="section-badge" id="dataStatus">等待导入</span>
+                </div>
+
+                <!-- 库容曲线 -->
+                <div class="data-card" id="cardZV">
+                    <div class="card-header">
+                        <h3>库容曲线</h3>
+                        <span class="status-tag" id="tagZV">未加载</span>
+                    </div>
+                    <div class="upload-zone" id="uploadZV">
+                        <div class="upload-content">
+                            <svg class="upload-icon" viewBox="0 0 24 24" width="28" height="28"><path fill="currentColor" d="M9 16h6v-6h4l-7-7-7 7h4zm-4 2h14v2H5z"/></svg>
+                            <span class="upload-text">拖拽 .txt 文件或点击上传</span>
+                            <span class="upload-hint">水位(m)  库容(万m³)</span>
+                        </div>
+                        <input type="file" accept=".txt,.csv" class="file-input" id="fileZV">
+                    </div>
+                    <div class="sample-download">
+                        <button class="btn btn-sm btn-download" onclick="downloadSample('zv')">📥 下载示例</button>
+                    </div>
+                    <div class="table-wrapper hidden" id="tableWrapperZV">
+                        <table class="data-table" id="tableZV">
+                            <thead><tr><th>序号</th><th>水位 (m)</th><th>库容 (万m³)</th></tr></thead>
+                            <tbody></tbody>
+                        </table>
+                    </div>
+                    <div class="card-actions hidden" id="actionsZV">
+                        <button class="btn btn-sm btn-outline" onclick="pasteFromClipboard('zv')">📋 粘贴数据</button>
+                        <button class="btn btn-sm btn-outline-danger" onclick="clearData('zv')">删除</button>
+                    </div>
+                </div>
+
+                <!-- 泄流曲线 -->
+                <div class="data-card" id="cardZQ">
+                    <div class="card-header">
+                        <h3>泄流曲线</h3>
+                        <span class="status-tag" id="tagZQ">未加载</span>
+                    </div>
+                    <div class="upload-zone" id="uploadZQ">
+                        <div class="upload-content">
+                            <svg class="upload-icon" viewBox="0 0 24 24" width="28" height="28"><path fill="currentColor" d="M9 16h6v-6h4l-7-7-7 7h4zm-4 2h14v2H5z"/></svg>
+                            <span class="upload-text">拖拽 .txt 文件或点击上传</span>
+                            <span class="upload-hint">水位(m)  流量(m³/s)</span>
+                        </div>
+                        <input type="file" accept=".txt,.csv" class="file-input" id="fileZQ">
+                    </div>
+                    <div class="sample-download">
+                        <button class="btn btn-sm btn-download" onclick="downloadSample('zq')">📥 下载示例</button>
+                    </div>
+                    <div class="table-wrapper hidden" id="tableWrapperZQ">
+                        <table class="data-table" id="tableZQ">
+                            <thead><tr><th>序号</th><th>水位 (m)</th><th>流量 (m³/s)</th></tr></thead>
+                            <tbody></tbody>
+                        </table>
+                    </div>
+                    <div class="card-actions hidden" id="actionsZQ">
+                        <button class="btn btn-sm btn-outline" onclick="pasteFromClipboard('zq')">📋 粘贴数据</button>
+                        <button class="btn btn-sm btn-outline-danger" onclick="clearData('zq')">删除</button>
+                    </div>
+                </div>
+
+                <!-- 洪水过程线 -->
+                <div class="data-card" id="cardFlood">
+                    <div class="card-header">
+                        <h3>入库洪水过程线</h3>
+                        <span class="status-tag" id="tagFlood">未加载</span>
+                    </div>
+                    <div class="upload-zone" id="uploadFlood">
+                        <div class="upload-content">
+                            <svg class="upload-icon" viewBox="0 0 24 24" width="28" height="28"><path fill="currentColor" d="M9 16h6v-6h4l-7-7-7 7h4zm-4 2h14v2H5z"/></svg>
+                            <span class="upload-text">拖拽 .txt 文件或点击上传</span>
+                            <span class="upload-hint">时间(h)  流量(m³/s)</span>
+                        </div>
+                        <input type="file" accept=".txt,.csv" class="file-input" id="fileFlood">
+                    </div>
+                    <div class="sample-download">
+                        <button class="btn btn-sm btn-download" onclick="downloadSample('flood')">📥 下载示例</button>
+                    </div>
+                    <div class="table-wrapper hidden" id="tableWrapperFlood">
+                        <table class="data-table" id="tableFlood">
+                            <thead><tr><th>序号</th><th>时间 (h)</th><th>流量 (m³/s)</th></tr></thead>
+                            <tbody></tbody>
+                        </table>
+                    </div>
+                    <div class="card-actions hidden" id="actionsFlood">
+                        <button class="btn btn-sm btn-outline" onclick="pasteFromClipboard('flood')">📋 粘贴数据</button>
+                        <button class="btn btn-sm btn-outline-danger" onclick="clearData('flood')">删除</button>
+                    </div>
+                </div>
+            </section>
+
+            <!-- 参数设置区 -->
+            <section class="panel-section" id="sectionParams">
+                <div class="section-header">
+                    <h2>② 参数设置</h2>
+                </div>
+                <div class="params-form">
+                    <div class="param-row">
+                        <label for="zStart">起调水位</label>
+                        <div class="input-group">
+                            <input type="number" id="zStart" step="0.01" placeholder="如: 1024" autocomplete="off">
+                            <span class="input-unit">m</span>
+                        </div>
+                    </div>
+                    <div class="param-row">
+                        <label for="dt">演算时段</label>
+                        <div class="input-group">
+                            <input type="number" id="dt" step="0.01" value="0.1" placeholder="0.1" autocomplete="off">
+                            <span class="input-unit">h</span>
+                        </div>
+                    </div>
+                    <div class="param-row">
+                        <label for="z0">防限水位</label>
+                        <div class="input-group">
+                            <input type="number" id="z0" step="0.01" value="0" placeholder="可选" autocomplete="off">
+                            <span class="input-unit">m</span>
+                        </div>
+                    </div>
+                    <div class="param-row">
+                        <label for="method">调洪方法</label>
+                        <select id="method">
+                            <option value="0">积分法 (安氏公式)</option>
+                            <option value="1">龙格库塔法</option>
+                            <option value="2">迭代法</option>
+                        </select>
+                    </div>
+                </div>
+                <button class="btn btn-primary btn-lg btn-full" id="btnCalculate" disabled>
+                    <span class="btn-icon">▶</span> 开始调洪演算
+                </button>
+                <span class="shortcut-hint">Ctrl + Enter</span>
+            </section>
+        </aside>
+
+        <!-- 右侧面板 -->
+        <main class="right-panel" id="rightPanel">
+            <!-- 图表区 -->
+            <section class="panel-section" id="sectionCharts">
+                <div class="section-header">
+                    <h2>③ 图形展示</h2>
+                </div>
+                <div class="chart-tabs">
+                    <button class="chart-tab active" data-tab="chartZV">库容曲线</button>
+                    <button class="chart-tab" data-tab="chartZQ">泄流曲线</button>
+                    <button class="chart-tab" data-tab="chartResult">调洪成果</button>
+                </div>
+                <div class="chart-container" id="chartZVContainer">
+                    <div class="chart-box" id="chartZV"></div>
+                </div>
+                <div class="chart-container hidden" id="chartZQContainer">
+                    <div class="chart-box" id="chartZQ"></div>
+                </div>
+                <div class="chart-container hidden" id="chartResultContainer">
+                    <div class="chart-box" id="chartResult"></div>
+                </div>
+            </section>
+
+            <!-- 结果区 -->
+            <section class="panel-section expand" id="sectionResults">
+                <div class="section-header">
+                    <h2>④ 计算结果</h2>
+                    <button class="btn btn-sm btn-primary hidden" id="btnExport" onclick="exportExcel()">📥 导出 Excel</button>
+                </div>
+
+                <!-- 空状态 -->
+                <div class="empty-state" id="resultEmpty">
+                    <svg viewBox="0 0 24 24" width="48" height="48" fill="#ccc"><path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm-5 14H7v-2h7v2zm3-4H7v-2h10v2zm0-4H7V7h10v2z"/></svg>
+                    <p>导入数据并完成计算后，结果将显示在此处</p>
+                </div>
+
+                <!-- 特征值卡片 -->
+                <div class="summary-cards hidden" id="summaryCards">
+                    <div class="summary-card">
+                        <div class="summary-label">起调库容</div>
+                        <div class="summary-value" id="valVStart">—</div>
+                        <div class="summary-unit">万m³</div>
+                    </div>
+                    <div class="summary-card highlight">
+                        <div class="summary-label">调洪最高水位</div>
+                        <div class="summary-value" id="valZMax">—</div>
+                        <div class="summary-unit">m</div>
+                    </div>
+                    <div class="summary-card">
+                        <div class="summary-label">调洪最大库容</div>
+                        <div class="summary-value" id="valVMax">—</div>
+                        <div class="summary-unit">万m³</div>
+                    </div>
+                    <div class="summary-card">
+                        <div class="summary-label">最大下泄流量</div>
+                        <div class="summary-value" id="valQMax">—</div>
+                        <div class="summary-unit">m³/s</div>
+                    </div>
+                    <div class="summary-card">
+                        <div class="summary-label">滞洪库容</div>
+                        <div class="summary-value" id="valVRet">—</div>
+                        <div class="summary-unit">万m³</div>
+                    </div>
+                </div>
+
+                <!-- 结果表格 -->
+                <div class="table-wrapper result-full hidden" id="resultTableWrapper">
+                    <table class="data-table result-table" id="resultTable">
+                        <thead>
+                            <tr>
+                                <th>序号</th>
+                                <th>时间 (h)</th>
+                                <th>时段平均入库 (m³/s)</th>
+                                <th>时段平均出库 (m³/s)</th>
+                                <th>时段初水位 (m)</th>
+                                <th>时段末水位 (m)</th>
+                                <th>时段初库容 (万m³)</th>
+                                <th>时段末库容 (万m³)</th>
+                            </tr>
+                        </thead>
+                        <tbody></tbody>
+                    </table>
+                </div>
+
+                <!-- 计算耗时 -->
+                <div class="compute-time hidden" id="computeTime"></div>
+            </section>
+        </main>
+    </div>
+
+    <!-- Toast 通知 -->
+    <div class="toast-container" id="toastContainer"></div>
+
+    <!-- 粘贴弹窗 -->
+    <div class="modal-overlay hidden" id="pasteModal">
+        <div class="modal-box">
+            <div class="modal-header">
+                <h3>粘贴数据</h3>
+                <button class="modal-close" onclick="closePasteModal()">&times;</button>
+            </div>
+            <p class="modal-hint">从 Excel 或文本编辑器复制数据后粘贴到下方 (两列: 水位/库容 或 时间/流量)</p>
+            <textarea id="pasteTextarea" rows="8" placeholder="在此粘贴数据...&#10;每行一条记录，列间用 Tab/空格/逗号 分隔"></textarea>
+            <div class="modal-actions">
+                <button class="btn btn-outline" onclick="closePasteModal()">取消</button>
+                <button class="btn btn-primary" id="btnPasteConfirm">确认导入</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="/static/js/main.js"></script>
+</body>
+</html>

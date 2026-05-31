@@ -1,0 +1,46 @@
+# === .NET / C# ===
+bin/
+obj/
+*.suo
+*.user
+*.userosscache
+*.sln.docstates
+*.userprefs
+[Dd]ebug/
+[Rr]elease/
+*.msi
+*.exe
+*.cache
+*.dll
+*.pdb
+*.vshost.exe
+*.vshost.exe.manifest
+_UpgradeReport_Files/
+UpgradeLog*.XML
+GeneratedArtifacts/
+_Pvt_Extensions/
+packages/
+
+# === Python ===
+__pycache__/
+*.py[cod]
+*.egg-info/
+dist/
+build/
+.venv/
+venv/
+env/
+
+# === IDE ===
+.vs/
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+.DS_Store
+Thumbs.db
+
+# === Environment ===
+.env
+.env.local
