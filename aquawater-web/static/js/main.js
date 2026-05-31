@@ -747,21 +747,29 @@ document.addEventListener('DOMContentLoaded', () => {
 });
 
 // ===== Donate Section =====
-// Tab switching (微信/支付宝)
+let donateAmount = 5;
+let donatePlatform = 'wechat';
+const isMobile = /Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
+$('#donateQrHint').textContent = '请用微信扫码（金额已标注）';
+
+// Tab switching (支付宝/微信)
 $$('.donate-tab').forEach(tab => {
     tab.addEventListener('click', () => {
         const target = tab.dataset.tab;
-        // Update tab active states
+        donatePlatform = target;
         $$('.donate-tab').forEach(t => t.classList.remove('active'));
         tab.classList.add('active');
-        // Toggle QR code images
-        if (target === 'wechat') {
-            $('#qrWechat').classList.add('active');
-            $('#qrAlipay').classList.remove('active');
-        } else {
+
+        if (target === 'alipay') {
             $('#qrAlipay').classList.add('active');
             $('#qrWechat').classList.remove('active');
+            $('#donateQrHint').textContent = '请用支付宝扫码（金额已标注）';
+        } else {
+            $('#qrWechat').classList.add('active');
+            $('#qrAlipay').classList.remove('active');
+            $('#donateQrHint').textContent = '请用微信扫码（金额已标注）';
         }
+        updateDonateAmount();
     });
 });
 
@@ -770,5 +778,26 @@ $$('.donate-amount').forEach(btn => {
     btn.addEventListener('click', () => {
         $$('.donate-amount').forEach(b => b.classList.remove('active'));
         btn.classList.add('active');
+        donateAmount = parseInt(btn.dataset.amount);
+        updateDonateAmount();
     });
+});
+
+function updateDonateAmount() {
+    $('#donateAmountBadge').textContent = '¥' + donateAmount;
+    $('#donatePayAmount').textContent = donateAmount;
+}
+
+// Pay button: deep link on mobile, QR tip on desktop
+$('#btnDonatePay').addEventListener('click', () => {
+    const pname = donatePlatform === 'alipay' ? '支付宝' : '微信';
+    if (donatePlatform === 'alipay' && isMobile) {
+        window.location.href = 'alipays://platformapi/startapp?saId=10000007&qrcode=' + encodeURIComponent('https://qr.alipay.com/fkx149297nvhgy5ecgp1r74');
+        setTimeout(() => toast('如未跳转，请用' + pname + '扫码支付 ¥' + donateAmount, 'info'), 1500);
+    } else if (donatePlatform === 'wechat' && isMobile) {
+        window.location.href = 'weixin://';
+        setTimeout(() => toast('如未跳转，请用微信扫码支付 ¥' + donateAmount, 'info'), 1500);
+    } else {
+        toast('请用' + pname + '扫描二维码，支付 ¥' + donateAmount, 'info');
+    }
 });

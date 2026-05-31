@@ -11,6 +11,7 @@
     <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"
             integrity="sha384-vtjasyidUo0kW94K5MXDXntzOJpQgBKXmE7e2Ga4LG0skTTLeBi97eFAXsqewJjw"
             crossorigin="anonymous"></script>
+    <script src="/static/js/qrcode.min.js"></script>
 </head>
 <body>
     <!-- 顶部导航栏 -->
@@ -177,22 +178,32 @@
                     <span class="donate-header-tag">打赏</span>
                 </div>
                 <div class="donate-body">
-                    <p class="donate-text">如果这个工具对你有帮助，欢迎请作者喝杯咖啡 ☕</p>
-                    <div class="donate-amounts">
-                        <button class="donate-amount active" data-amount="5">5元</button>
-                        <button class="donate-amount" data-amount="10">10元</button>
-                        <button class="donate-amount" data-amount="20">20元</button>
-                        <span class="donate-amount-custom">随心打赏</span>
-                    </div>
+                    <p class="donate-text">如果这个工具对你有帮助，欢迎请作者喝杯咖啡</p>
                     <div class="donate-tabs">
                         <button class="donate-tab active" data-tab="wechat">微信</button>
                         <button class="donate-tab" data-tab="alipay">支付宝</button>
                     </div>
-                    <div class="donate-qr-container">
-                        <img src="/static/img/微信.jpg" alt="微信打赏" class="donate-qr active" id="qrWechat">
-                        <img src="/static/img/支付宝.jpg" alt="支付宝打赏" class="donate-qr" id="qrAlipay">
+                    <div class="donate-amounts">
+                        <button class="donate-amount active" data-amount="5">¥5</button>
+                        <button class="donate-amount" data-amount="10">¥10</button>
+                        <button class="donate-amount" data-amount="20">¥20</button>
                     </div>
-                    <p class="donate-thanks">感谢你的支持 ❤️</p>
+                    <div class="donate-qr-wrapper">
+                        <div class="donate-qr-container" id="donateQrContainer">
+                            <!-- 支付宝：动态生成带金额的二维码 -->
+                            <!-- 微信收款码 -->
+                            <img src="/static/img/微信.jpg" alt="微信打赏" class="donate-qr active" id="qrWechat">
+                            <!-- 支付宝收款码 -->
+                            <img src="/static/img/支付宝.jpg" alt="支付宝打赏" class="donate-qr" id="qrAlipay">
+                        </div>
+                        <div class="donate-pay-col">
+                            <div class="donate-amount-badge" id="donateAmountBadge">¥5</div>
+                            <button class="btn btn-primary btn-sm donate-pay-btn" id="btnDonatePay">
+                                立即支付 ¥<span id="donatePayAmount">5</span>
+                            </button>
+                            <p class="donate-qr-hint" id="donateQrHint">请用微信扫码（金额已标注）</p>
+                        </div>
+                    </div>
                 </div>
             </section>
         </aside>
