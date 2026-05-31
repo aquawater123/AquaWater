@@ -2,12 +2,30 @@
 
 import io
 import os
+import sys
+import secrets
 from flask import Flask, render_template, request, jsonify, send_file
 import openpyxl
 from openpyxl.styles import Font, Alignment, Border, Side, PatternFill
+from flask_limiter import Limiter
+from flask_limiter.util import get_remote_address
 from reservoir import run_flood_routing
 
 app = Flask(__name__)
+
+# ---- 安全配置 ----
+app.secret_key = os.environ.get('SECRET_KEY', secrets.token_hex(32))
+app.config['MAX_CONTENT_LENGTH'] = 16 * 1024 * 1024  # 上传限制 16MB
+app.config['PREFERRED_URL_SCHEME'] = 'https'
+
+# ---- 速率限制（防滥用）----
+limiter = Limiter(
+    get_remote_address,
+    app=app,
+    default_limits=["300 per day", "60 per hour"],
+    storage_uri="memory://",
+)
+
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 
 # 示例数据文件映射
@@ -62,6 +80,7 @@ def preview():
 
 
 @app.route('/api/calculate', methods=['POST'])
+@limiter.limit("30 per minute")
 def calculate():
     """执行调洪演算"""
     try:
@@ -211,4 +230,9 @@ def download_sample(file_type):
 
 
 if __name__ == '__main__':
-    app.run(debug=True, host='0.0.0.0', port=8090)
+    from waitress import serve
+    port = int(os.environ.get('PORT', 8090))
+    print(f'  AquaWater 调洪演算服务已启动')
+    print(f'  访问地址: http://localhost:{port}')
+    print(f'  按 Ctrl+C 停止服务')
+    serve(app, host='0.0.0.0', port=port)
