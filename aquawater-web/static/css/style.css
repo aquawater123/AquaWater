@@ -1128,6 +1128,142 @@ body::after {
 }
 
 /* ============================================================
+   Donate Section — Warm golden accent
+   ============================================================ */
+.donate-header {
+    border-bottom-color: rgba(255, 171, 0, 0.2) !important;
+}
+
+.donate-header-tag {
+    font-size: 0.7rem;
+    padding: 3px 12px;
+    border-radius: 12px;
+    font-weight: 500;
+    background: rgba(255, 171, 0, 0.12);
+    color: var(--color-warning);
+    border: 1px solid rgba(255, 171, 0, 0.3);
+}
+
+.donate-body {
+    padding: var(--spacing-md);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: var(--spacing-sm);
+}
+
+.donate-text {
+    font-size: 0.78rem;
+    color: var(--text-secondary);
+    text-align: center;
+    margin-bottom: 4px;
+}
+
+/* Amount buttons */
+.donate-amounts {
+    display: flex;
+    gap: var(--spacing-xs);
+    align-items: center;
+}
+
+.donate-amount {
+    padding: 4px 16px;
+    border-radius: 16px;
+    border: 1px solid rgba(255, 171, 0, 0.25);
+    background: rgba(255, 171, 0, 0.06);
+    color: var(--text-secondary);
+    font-size: 0.76rem;
+    font-family: var(--font-family);
+    cursor: pointer;
+    transition: all var(--transition);
+}
+
+.donate-amount:hover {
+    border-color: var(--color-warning);
+    color: var(--color-warning);
+    background: rgba(255, 171, 0, 0.12);
+}
+
+.donate-amount.active {
+    background: linear-gradient(135deg, rgba(255, 171, 0, 0.25), rgba(255, 152, 0, 0.1));
+    border-color: var(--color-warning);
+    color: var(--color-warning);
+    font-weight: 600;
+    box-shadow: 0 0 12px var(--color-warning-glow);
+}
+
+.donate-amount-custom {
+    font-size: 0.72rem;
+    color: var(--text-muted);
+    margin-left: 4px;
+}
+
+/* Tab buttons for WeChat / Alipay */
+.donate-tabs {
+    display: flex;
+    gap: var(--spacing-sm);
+    margin-top: 4px;
+}
+
+.donate-tab {
+    padding: 6px 24px;
+    border: none;
+    border-radius: var(--radius-sm);
+    background: rgba(16, 26, 48, 0.5);
+    color: var(--text-muted);
+    font-size: 0.78rem;
+    font-family: var(--font-family);
+    cursor: pointer;
+    border-bottom: 2px solid transparent;
+    transition: all var(--transition);
+}
+
+.donate-tab:hover {
+    color: var(--text-secondary);
+    background: rgba(20, 32, 58, 0.6);
+}
+
+.donate-tab.active {
+    color: var(--color-success);
+    border-bottom-color: var(--color-success);
+    font-weight: 600;
+    text-shadow: 0 0 8px var(--color-success-glow);
+}
+
+/* QR Code container */
+.donate-qr-container {
+    width: 180px;
+    height: 180px;
+    margin: var(--spacing-xs) 0;
+    position: relative;
+    border-radius: var(--radius-md);
+    overflow: hidden;
+    border: 1px solid rgba(255, 171, 0, 0.15);
+    box-shadow: 0 0 20px rgba(255, 171, 0, 0.06);
+    background: #fff;
+}
+
+.donate-qr {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+    display: none;
+    padding: 4px;
+}
+
+.donate-qr.active {
+    display: block;
+}
+
+.donate-thanks {
+    font-size: 0.72rem;
+    color: var(--text-muted);
+    margin-top: 2px;
+}
+
+/* ============================================================
    Responsive
    ============================================================ */
 @media (max-width: 1199px) {

@@ -745,3 +745,30 @@ document.addEventListener('DOMContentLoaded', () => {
     updateStep(0);
     checkAllReady();
 });
+
+// ===== Donate Section =====
+// Tab switching (微信/支付宝)
+$$('.donate-tab').forEach(tab => {
+    tab.addEventListener('click', () => {
+        const target = tab.dataset.tab;
+        // Update tab active states
+        $$('.donate-tab').forEach(t => t.classList.remove('active'));
+        tab.classList.add('active');
+        // Toggle QR code images
+        if (target === 'wechat') {
+            $('#qrWechat').classList.add('active');
+            $('#qrAlipay').classList.remove('active');
+        } else {
+            $('#qrAlipay').classList.add('active');
+            $('#qrWechat').classList.remove('active');
+        }
+    });
+});
+
+// Amount button selection
+$$('.donate-amount').forEach(btn => {
+    btn.addEventListener('click', () => {
+        $$('.donate-amount').forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+    });
+});
