@@ -1,0 +1,268 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>老树发新芽：AI协助下重写水文小工具</title>
+<style>
+  :root {
+    --text: #333;
+    --text-secondary: #666;
+    --accent: #1a73e8;
+    --bg: #fff;
+    --bg-quote: #f5f7fa;
+    --border: #e8e8e8;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC", "Microsoft YaHei", sans-serif;
+    color: var(--text);
+    line-height: 1.85;
+    background: #f0f0f0;
+    display: flex;
+    justify-content: center;
+  }
+  .article-wrapper {
+    max-width: 680px;
+    width: 100%;
+    background: var(--bg);
+    padding: 40px 32px 60px;
+    box-shadow: 0 0 20px rgba(0,0,0,0.05);
+  }
+  h1 {
+    font-size: 1.6rem;
+    font-weight: 700;
+    text-align: center;
+    margin-bottom: 12px;
+    line-height: 1.4;
+  }
+  h2 {
+    font-size: 1.2rem;
+    font-weight: 700;
+    margin: 36px 0 14px;
+    padding-left: 12px;
+    border-left: 4px solid var(--accent);
+  }
+  h3 {
+    font-size: 1.05rem;
+    font-weight: 600;
+    margin: 24px 0 10px;
+  }
+  p { margin-bottom: 14px; font-size: 0.95rem; }
+  blockquote {
+    background: var(--bg-quote);
+    border-left: 3px solid #ccc;
+    padding: 12px 16px;
+    margin: 16px 0;
+    color: var(--text-secondary);
+    font-size: 0.9rem;
+    border-radius: 0 6px 6px 0;
+  }
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    margin: 16px 0;
+    font-size: 0.88rem;
+  }
+  th, td {
+    border: 1px solid var(--border);
+    padding: 8px 12px;
+    text-align: left;
+  }
+  th {
+    background: #f8f9fb;
+    font-weight: 600;
+  }
+  tr:nth-child(even) td { background: #fafbfc; }
+  ul, ol { margin: 10px 0 14px 20px; font-size: 0.95rem; }
+  li { margin-bottom: 4px; }
+  img {
+    max-width: 100%;
+    height: auto;
+    display: block;
+    margin: 16px auto;
+    border-radius: 6px;
+    box-shadow: 0 2px 12px rgba(0,0,0,0.08);
+  }
+  img.gif-demo {
+    border: 1px solid #e0e0e0;
+  }
+  .img-caption {
+    text-align: center;
+    font-size: 0.82rem;
+    color: #999;
+    margin-top: -10px;
+    margin-bottom: 18px;
+  }
+  hr {
+    border: none;
+    border-top: 1px solid #eee;
+    margin: 28px 0;
+  }
+  .step-badge {
+    display: inline-block;
+    background: var(--accent);
+    color: #fff;
+    font-size: 0.78rem;
+    padding: 2px 10px;
+    border-radius: 10px;
+    margin-right: 6px;
+    vertical-align: middle;
+  }
+  .ending {
+    text-align: center;
+    margin-top: 36px;
+    padding: 20px;
+    background: linear-gradient(135deg, #e8f4fd, #f0e6f6);
+    border-radius: 10px;
+    font-size: 0.9rem;
+    color: #555;
+  }
+  .ending a { color: var(--accent); font-weight: 600; text-decoration: none; }
+  .checklist { list-style: none; margin-left: 0; }
+  .checklist li::before { content: "✅ "; }
+</style>
+</head>
+<body>
+<div class="article-wrapper">
+
+<h1>老树发新芽：AI 协助下重写水文小工具</h1>
+
+<blockquote>
+  一个十几年前的 C# 桌面程序，如何在 AI 的帮助下焕然一新，变身现代化 Web 应用。
+</blockquote>
+
+<hr>
+
+<h2>一、缘起：一个沉睡多年的老程序</h2>
+
+<p>多年前，我用 C# WinForms 写了一个水库调洪演算工具。功能没问题——输入库容曲线、泄流曲线、洪水过程线，选择计算方法，就能算出调洪最高水位、最大下泄流量等关键指标，还能导出 Excel 成果表。</p>
+
+<p>但它有几个硬伤：</p>
+
+<ul>
+  <li>🖥️ <strong>只能在 Windows 上跑</strong>，换个电脑就得重新安装</li>
+  <li>📦 <strong>依赖 .NET Framework</strong>，部署麻烦</li>
+  <li>🎨 <strong>界面停留在 XP 时代</strong>，灰框白底，毫无美感</li>
+  <li>🌐 <strong>无法远程使用</strong>，同事要用必须拷贝整个文件夹</li>
+</ul>
+
+<p>有过想把他改造为WEB版，但始终没时间，而且习惯了C/S开发，对B/S开发不熟悉。直到最近，AI的革命让我决定试一试。</p>
+
+<hr>
+
+<h2>二、技术选型：从桌面到云端</h2>
+
+<p>原版是 C#，核心算法大约 800 行，包含了三种调洪方法：</p>
+
+<table>
+  <tr><th>方法</th><th>说明</th></tr>
+  <tr><td>积分法（专利公式）</td><td>个人专利算法，高效稳定</td></tr>
+  <tr><td>龙格库塔法</td><td>四阶数值解法，经典算法</td></tr>
+  <tr><td>迭代法</td><td>逐步逼近，兼容性好</td></tr>
+</table>
+
+<p>重写目标很明确：<strong>Python + Flask → 浏览器即用</strong>。</p>
+
+<p>后端用 Flask 提供 REST API，前端用原生 HTML/CSS/JS + ECharts 做可视化，生产环境用 Waitress 部署，支持 HTTPS 和速率限制。</p>
+
+<p>整个过程，AI 完成了约 <strong>80% 的代码量</strong>——从算法翻译、API 设计、前端布局到安全加固，我只负责审查和微调。</p>
+
+<hr>
+
+<h2>三、功能介绍：三步完成一次调洪演算</h2>
+
+<p>打开浏览器，访问 <code>http://aquawater.cn:8090</code>，界面分为左右两栏，流程清晰：</p>
+
+<h3>操作流程演示（鼠标操作模拟）</h3>
+<p>下图完整记录了用鼠标操作完成一次调洪演算的完整过程：</p>
+
+<img class="gif-demo" src="screenshots/aquawater_demo.gif" alt="完整操作流程">
+<p class="img-caption">▲ 全屏录屏（1920×1080）：鼠标依次操作——导入库容曲线 → 泄流曲线 → 洪水过程线 → 填写参数(起调水位1024m,防限水位0,时段0.1h) → 展开方法选择 → 点击计算 → 滚动查看结果</p>
+
+<h3><span class="step-badge">Step 1</span> 导入数据</h3>
+<p>支持拖拽上传、点击上传、粘贴导入三种方式。系统自动解析 Tab/逗号/空格分隔的文本文件，并在表格中展示预览。</p>
+<p>表格支持 <strong>原地编辑</strong>，如果某个数据点需要微调，双击单元格直接改，图表实时刷新。导入即出图，三种曲线可在右侧面板切换查看。</p>
+
+<img src="screenshots/02_zv_imported.png" alt="导入库容曲线">
+<p class="img-caption">▲ 点击上传库容曲线后，左侧数据表格 + 右侧库容曲线图即时展示</p>
+
+<h3><span class="step-badge">Step 2</span> 设置参数</h3>
+<p>填入起调水位、初始库容、时段长，选择计算方法（专利公式 / 龙格库塔法 / 迭代法），点击「开始调洪演算」——或者直接按 <code>Ctrl + Enter</code>。</p>
+
+<img src="screenshots/05_params.png" alt="设置计算参数">
+<p class="img-caption">▲ 三组数据全部导入后，填写参数（起调水位1024m、防限水位0、时段0.1h），展开方法选择下拉框</p>
+
+<h3><span class="step-badge">Step 3</span> 查看结果</h3>
+<p>计算结果包含：</p>
+<ul>
+  <li>📊 <strong>特征值卡片</strong>：调洪最高水位、最大库容、最大下泄流量、滞洪库容</li>
+  <li>📈 <strong>过程线图表</strong>：入库流量、出库流量、库水位三条曲线叠加显示</li>
+  <li>📋 <strong>逐时段成果表</strong>：每个时段的水位、库容、流量明细</li>
+  <li>📥 <strong>一键导出 Excel</strong>：带格式的成果表，直接用于报告</li>
+</ul>
+
+<img src="screenshots/06_results.png" alt="计算结果页面">
+<p class="img-caption">▲ 使用真实示例数据计算：P=5% 设计洪水，专利公式，起调水位1024m。特征值卡片高亮显示关键指标</p>
+
+<hr>
+
+<h2>四、AI 协作实录：效率提升 10 倍</h2>
+
+<p>分享几个印象深刻的瞬间：</p>
+
+<h3>4.1 算法翻译：C# → Python</h3>
+<p>800 行 C# 的水库调度算法，涉及大量的数组操作、线性插值、数值积分。我把代码贴给 AI，它几乎零误差地翻译成了 Python，连边界条件的处理都注意到了。</p>
+<p><strong>人工预估：</strong>20~30 天<br><strong>AI 辅助实际：</strong>2~3 天审查 + 微调</p>
+
+<h3>4.2 前端从零搭建</h3>
+<p>「帮我写一个科技感的数据面板，左边是数据导入区，右边是图表展示区，支持暗色主题……」</p>
+<p>几分钟后，一个完整的 HTML + CSS + JS 框架就出来了。后续的调整——表头固定、图表切换、响应式适配——基本都是一句话的事。</p>
+
+<img src="screenshots/01_initial.png" alt="初始空状态">
+<p class="img-caption">▲ AI 生成的初始暗色主题界面，科技感十足，布局清晰</p>
+
+<h3>4.3 安全加固</h3>
+<p>「关闭 Flask debug 模式，换 Waitress 生产服务器，加上速率限制，上传文件限制 16MB」——五分钟后，一个生产级的 Web 服务就绪。</p>
+
+<h3>4.4 Bug 修复</h3>
+<p>最让我惊讶的是调试效率。以前遇到一个 CSS 表头滚动穿透的 Bug，可能要查半小时文档。现在描述一下现象，AI 直接定位到 <code>rgba(0,229,255,0.08)</code> 透明度太低导致数据行透出，改一行 CSS 就好了。</p>
+
+<hr>
+
+<h2>五、部署上线</h2>
+<p>服务器是阿里云 Windows Server，也可以让AI 帮我一键上传、自动配置，完全不用人管。</p>
+<p>在线体验地址：<strong><a href="http://aquawater.cn:8090" target="_blank">http://aquawater.cn:8090</a></strong></p>
+
+<hr>
+
+<h2>六、总结与展望</h2>
+
+<p>这次重写经历让我对 AI 辅助开发有了全新的认识：</p>
+
+<table>
+  <tr><th>维度</th><th>传统开发</th><th>AI 辅助</th></tr>
+  <tr><td>代码产出速度</td><td>1x</td><td>5~10x</td></tr>
+  <tr><td>Bug 修复速度</td><td>1x</td><td>3~5x</td></tr>
+  <tr><td>跨语言移植</td><td>需要学新语言</td><td>直接翻译</td></tr>
+  <tr><td>UI 设计</td><td>需要设计师</td><td>描述即可生成</td></tr>
+  <tr><td>安全配置</td><td>容易遗漏</td><td>全面覆盖</td></tr>
+</table>
+
+<p><strong>核心感悟</strong>：AI 不是替代开发者，而是让开发者的能力边界大幅扩展。以前「没时间做」的事情，现在「顺手就做了」。</p>
+
+<p>下一步计划：</p>
+<ul class="checklist">
+  <li>增加更多水文计算模块（调洪演算只是第一步）</li>
+  <li>支持多语言（中/英）</li>
+</ul>
+
+<div class="ending">
+  <p style="font-size:1.1rem; margin-bottom:8px;">🌊 <strong>AquaWater 调洪演算程序</strong></p>
+  <p>在线体验：<a href="http://aquawater.cn:8090" target="_blank">http://aquawater.cn:8090</a></p>
+  <p style="margin-top:10px; color:#888;">如果你也是水利人，欢迎来试试这个小工具。<br>好用的话，告诉你的同事；有问题的话，告诉我。</p>
+</div>
+
+</div>
+</body>
+</html>
