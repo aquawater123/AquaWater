@@ -117,7 +117,7 @@ class Reservoir:
                 self.z_current = self.ztov.get_x(vt + qct * dt * 0.36)
                 return 0.0
 
-    # ---- 方法2: 积分法 (安氏公式) ----
+    # ---- 方法2: 积分法 (专利公式) ----
     def _c_znext_qx(self, z0, qct, dt):
         """通过公式直接推导时段末库水位 — 原 C_ZnextQX"""
         out_q = 0.0
@@ -195,7 +195,7 @@ class Reservoir:
         """演算一个时段，返回时段末水位
         q_come: 时段平均来水 (m³/s)
         dt: 时段长度 (h)
-        method: 0=积分法(安氏), 1=龙格库塔法, 2=迭代法
+        method: 0=积分法(专利公式), 1=龙格库塔法, 2=迭代法
         returns: (时段末水位, 时段平均出库流量)
         """
         if method == 1:

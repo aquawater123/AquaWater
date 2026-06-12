@@ -32,7 +32,7 @@ BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 SAMPLE_FILES = {
     'zv':  ('库容曲线.txt', '库容曲线_示例.txt'),
     'zq':  ('泄流.txt', '泄流曲线_示例.txt'),
-    'flood': (os.path.join('sample', '洪水过程线.txt'), '洪水过程线_示例.txt'),
+    'flood': (os.path.join('sample', 'P=5%洪水过程线.txt'), 'P=5%洪水过程线_示例.txt'),
 }
 
 

@@ -143,9 +143,10 @@ async function uploadFile(file, type) {
         const sampleEl = document.querySelector(`#card${cardId} .sample-download`);
         if (sampleEl) sampleEl.classList.add('hidden');
 
-        // Draw chart
-        if (type === 'zv') drawChartZV(result.data);
-        if (type === 'zq') drawChartZQ(result.data);
+        // Draw chart & switch tab
+        if (type === 'zv') { drawChartZV(result.data); switchChartTab('chartZV'); }
+        if (type === 'zq') { drawChartZQ(result.data); switchChartTab('chartZQ'); }
+        if (type === 'flood') { drawChartFlood(result.data); switchChartTab('chartResult'); }
 
         toast(`${file.name} 加载成功 (${result.count} 条数据)`, 'success');
         checkAllReady();
@@ -198,6 +199,20 @@ function syncTableEdits(type) {
     }
 }
 
+function clearChart(chartId, placeholderText) {
+    if (state.charts[chartId]) {
+        state.charts[chartId].setOption({
+            xAxis: { show: false },
+            yAxis: { show: false },
+            series: [],
+            graphic: {
+                type: 'text', left: 'center', top: 'middle',
+                style: { text: placeholderText, fill: '#4a5970', fontSize: 16, fontFamily: 'Microsoft YaHei' },
+            },
+        }, true);
+    }
+}
+
 function clearData(type) {
     const cardId = type === 'zv' ? 'ZV' : type === 'zq' ? 'ZQ' : 'Flood';
     const stateKey = type === 'zv' ? 'zv' : type === 'zq' ? 'zq' : 'flood';
@@ -212,6 +227,11 @@ function clearData(type) {
     $(`#file${cardId}`).value = '';
     const sampleEl3 = document.querySelector(`#card${cardId} .sample-download`);
     if (sampleEl3) sampleEl3.classList.remove('hidden');
+
+    // Clear corresponding chart
+    if (type === 'zv') clearChart('chartZV', '请先导入数据');
+    if (type === 'zq') clearChart('chartZQ', '请先导入数据');
+    if (type === 'flood') clearChart('chartResult', '计算完成后显示');
 
     checkAllReady();
     updateStep(state.zv.loaded || state.zq.loaded || state.flood.loaded ? 1 : 0);
@@ -260,9 +280,9 @@ $('#btnPasteConfirm').addEventListener('click', () => {
     const sampleEl2 = document.querySelector(`#card${cardId} .sample-download`);
     if (sampleEl2) sampleEl2.classList.add('hidden');
 
-    if (type === 'zv') drawChartZV(data);
-    if (type === 'zq') drawChartZQ(data);
-    if (type === 'flood') drawChartFlood(data);
+    if (type === 'zv') { drawChartZV(data); switchChartTab('chartZV'); }
+    if (type === 'zq') { drawChartZQ(data); switchChartTab('chartZQ'); }
+    if (type === 'flood') { drawChartFlood(data); switchChartTab('chartResult'); }
 
     toast(`粘贴导入成功 (${data.length} 条数据)`, 'success');
     closePasteModal();
@@ -402,8 +422,70 @@ function drawChartZQ(data) {
 }
 
 function drawChartFlood(data) {
-    // Flood preview is shown in the result area after calculation;
-    // no dedicated standalone preview chart needed.
+    const chart = initChart('chartResult');
+    if (!chart || !data) return;
+
+    const time = data.map(r => r.col1);
+    const inflow = data.map(r => r.col2);
+    const qMax = Math.max(...inflow);
+
+    chart.setOption({
+        backgroundColor: 'transparent',
+        tooltip: {
+            trigger: 'axis',
+            backgroundColor: 'rgba(10,15,31,0.95)',
+            borderColor: 'rgba(0,229,255,0.3)',
+            textStyle: { color: '#e0e8f0', fontSize: 12 },
+        },
+        legend: {
+            data: ['入库流量'],
+            top: 8, right: 10,
+            textStyle: { color: '#8899b4', fontSize: 11 },
+        },
+        xAxis: {
+            name: '时间 (h)', nameLocation: 'center', nameGap: 30,
+            nameTextStyle: { color: '#8899b4', fontSize: 12 },
+            axisLine: { lineStyle: { color: 'rgba(0,229,255,0.15)' } },
+            axisTick: { lineStyle: { color: 'rgba(0,229,255,0.15)' } },
+            splitLine: { lineStyle: { color: 'rgba(0,229,255,0.05)' } },
+            axisLabel: { color: '#8899b4', fontSize: 11 }
+        },
+        yAxis: {
+            name: '流量 (m³/s)', nameLocation: 'center', nameGap: 50,
+            min: 0, max: Math.ceil(qMax * 1.08),
+            nameTextStyle: { color: '#8899b4', fontSize: 12 },
+            axisLine: { lineStyle: { color: 'rgba(0,229,255,0.15)' } },
+            axisTick: { lineStyle: { color: 'rgba(0,229,255,0.15)' } },
+            splitLine: { lineStyle: { color: 'rgba(0,229,255,0.05)' } },
+            axisLabel: { color: '#8899b4', fontSize: 11 }
+        },
+        dataZoom: [
+            { type: 'inside', xAxisIndex: 0 },
+            { type: 'slider', xAxisIndex: 0, bottom: 5, height: 20,
+              borderColor: 'rgba(0,229,255,0.15)', backgroundColor: 'rgba(10,15,31,0.6)',
+              dataBackground: { lineStyle: { color: 'rgba(0,229,255,0.2)' }, areaStyle: { color: 'rgba(0,229,255,0.05)' } },
+              selectedDataBackground: { lineStyle: { color: '#00e5ff' }, areaStyle: { color: 'rgba(0,229,255,0.15)' } },
+              handleStyle: { color: '#00e5ff' }, textStyle: { color: '#8899b4' }
+            }
+        ],
+        toolbox: {
+            feature: { saveAsImage: { title: '保存图片' } },
+            iconStyle: { borderColor: '#8899b4' }
+        },
+        series: [{
+            name: '入库流量', type: 'line',
+            data: time.map((t, i) => [t, inflow[i]]),
+            smooth: true, symbol: 'none',
+            lineStyle: { color: '#ff5252', width: 2.5, shadowBlur: 8, shadowColor: 'rgba(255,82,82,0.4)' },
+            areaStyle: {
+                color: new echarts.graphic.LinearGradient(0, 0, 0, 1, [
+                    { offset: 0, color: 'rgba(255,82,82,0.12)' },
+                    { offset: 1, color: 'rgba(255,82,82,0.0)' }
+                ])
+            },
+        }],
+        grid: { left: 65, right: 30, top: 40, bottom: 60 },
+    });
 }
 
 function drawChartResult(chartData) {
@@ -527,19 +609,22 @@ function drawChartResult(chartData) {
 }
 
 // Tab switching
+function switchChartTab(target) {
+    $$('.chart-tab').forEach(t => t.classList.remove('active'));
+    const tabBtn = document.querySelector(`[data-tab="${target}"]`);
+    if (tabBtn) tabBtn.classList.add('active');
+    $('#chartZVContainer').classList.toggle('hidden', target !== 'chartZV');
+    $('#chartZQContainer').classList.toggle('hidden', target !== 'chartZQ');
+    $('#chartResultContainer').classList.toggle('hidden', target !== 'chartResult');
+    setTimeout(() => {
+        const chartId = target === 'chartZV' ? 'chartZV' : target === 'chartZQ' ? 'chartZQ' : 'chartResult';
+        if (state.charts[chartId]) state.charts[chartId].resize();
+    }, 100);
+}
+
 $$('.chart-tab').forEach(tab => {
     tab.addEventListener('click', () => {
-        const target = tab.dataset.tab;
-        $$('.chart-tab').forEach(t => t.classList.remove('active'));
-        tab.classList.add('active');
-        $('#chartZVContainer').classList.toggle('hidden', target !== 'chartZV');
-        $('#chartZQContainer').classList.toggle('hidden', target !== 'chartZQ');
-        $('#chartResultContainer').classList.toggle('hidden', target !== 'chartResult');
-        // Resize chart after showing
-        setTimeout(() => {
-            const chartId = target === 'chartZV' ? 'chartZV' : target === 'chartZQ' ? 'chartZQ' : 'chartResult';
-            if (state.charts[chartId]) state.charts[chartId].resize();
-        }, 100);
+        switchChartTab(tab.dataset.tab);
     });
 });
 
@@ -746,58 +831,58 @@ document.addEventListener('DOMContentLoaded', () => {
     checkAllReady();
 });
 
-// ===== Donate Section =====
-let donateAmount = 5;
-let donatePlatform = 'wechat';
-const isMobile = /Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
-$('#donateQrHint').textContent = '请用微信扫码（金额已标注）';
+// ===== Donate Section (已隐藏) =====
+// let donateAmount = 5;
+// let donatePlatform = 'wechat';
+// const isMobile = /Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
+// $('#donateQrHint').textContent = '请用微信扫码（金额已标注）';
 
-// Tab switching (支付宝/微信)
-$$('.donate-tab').forEach(tab => {
-    tab.addEventListener('click', () => {
-        const target = tab.dataset.tab;
-        donatePlatform = target;
-        $$('.donate-tab').forEach(t => t.classList.remove('active'));
-        tab.classList.add('active');
+// // Tab switching (支付宝/微信)
+// $$('.donate-tab').forEach(tab => {
+//     tab.addEventListener('click', () => {
+//         const target = tab.dataset.tab;
+//         donatePlatform = target;
+//         $$('.donate-tab').forEach(t => t.classList.remove('active'));
+//         tab.classList.add('active');
+//
+//         if (target === 'alipay') {
+//             $('#qrAlipay').classList.add('active');
+//             $('#qrWechat').classList.remove('active');
+//             $('#donateQrHint').textContent = '请用支付宝扫码（金额已标注）';
+//         } else {
+//             $('#qrWechat').classList.add('active');
+//             $('#qrAlipay').classList.remove('active');
+//             $('#donateQrHint').textContent = '请用微信扫码（金额已标注）';
+//         }
+//         updateDonateAmount();
+//     });
+// });
 
-        if (target === 'alipay') {
-            $('#qrAlipay').classList.add('active');
-            $('#qrWechat').classList.remove('active');
-            $('#donateQrHint').textContent = '请用支付宝扫码（金额已标注）';
-        } else {
-            $('#qrWechat').classList.add('active');
-            $('#qrAlipay').classList.remove('active');
-            $('#donateQrHint').textContent = '请用微信扫码（金额已标注）';
-        }
-        updateDonateAmount();
-    });
-});
+// // Amount button selection
+// $$('.donate-amount').forEach(btn => {
+//     btn.addEventListener('click', () => {
+//         $$('.donate-amount').forEach(b => b.classList.remove('active'));
+//         btn.classList.add('active');
+//         donateAmount = parseInt(btn.dataset.amount);
+//         updateDonateAmount();
+//     });
+// });
 
-// Amount button selection
-$$('.donate-amount').forEach(btn => {
-    btn.addEventListener('click', () => {
-        $$('.donate-amount').forEach(b => b.classList.remove('active'));
-        btn.classList.add('active');
-        donateAmount = parseInt(btn.dataset.amount);
-        updateDonateAmount();
-    });
-});
+// function updateDonateAmount() {
+//     $('#donateAmountBadge').textContent = '¥' + donateAmount;
+//     $('#donatePayAmount').textContent = donateAmount;
+// }
 
-function updateDonateAmount() {
-    $('#donateAmountBadge').textContent = '¥' + donateAmount;
-    $('#donatePayAmount').textContent = donateAmount;
-}
-
-// Pay button: deep link on mobile, QR tip on desktop
-$('#btnDonatePay').addEventListener('click', () => {
-    const pname = donatePlatform === 'alipay' ? '支付宝' : '微信';
-    if (donatePlatform === 'alipay' && isMobile) {
-        window.location.href = 'alipays://platformapi/startapp?saId=10000007&qrcode=' + encodeURIComponent('https://qr.alipay.com/fkx149297nvhgy5ecgp1r74');
-        setTimeout(() => toast('如未跳转，请用' + pname + '扫码支付 ¥' + donateAmount, 'info'), 1500);
-    } else if (donatePlatform === 'wechat' && isMobile) {
-        window.location.href = 'weixin://';
-        setTimeout(() => toast('如未跳转，请用微信扫码支付 ¥' + donateAmount, 'info'), 1500);
-    } else {
-        toast('请用' + pname + '扫描二维码，支付 ¥' + donateAmount, 'info');
-    }
-});
+// // Pay button: deep link on mobile, QR tip on desktop
+// $('#btnDonatePay').addEventListener('click', () => {
+//     const pname = donatePlatform === 'alipay' ? '支付宝' : '微信';
+//     if (donatePlatform === 'alipay' && isMobile) {
+//         window.location.href = 'alipays://platformapi/startapp?saId=10000007&qrcode=' + encodeURIComponent('https://qr.alipay.com/fkx149297nvhgy5ecgp1r74');
+//         setTimeout(() => toast('如未跳转，请用' + pname + '扫码支付 ¥' + donateAmount, 'info'), 1500);
+//     } else if (donatePlatform === 'wechat' && isMobile) {
+//         window.location.href = 'weixin://';
+//         setTimeout(() => toast('如未跳转，请用微信扫码支付 ¥' + donateAmount, 'info'), 1500);
+//     } else {
+//         toast('请用' + pname + '扫描二维码，支付 ¥' + donateAmount, 'info');
+//     }
+// });
