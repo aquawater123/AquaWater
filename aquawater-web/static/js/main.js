@@ -520,7 +520,7 @@ function drawChartResult(chartData) {
             }
         },
         legend: {
-            data: ['入库流量', '出库流量', '库水位'],
+            data: ['时段平均入库', '时段平均出库', '库水位'],
             top: 8, right: 10,
             textStyle: { color: '#8899b4', fontSize: 11 },
             itemGap: 16
@@ -568,7 +568,7 @@ function drawChartResult(chartData) {
         },
         series: [
             {
-                name: '入库流量', type: 'line',
+                name: '时段平均入库', type: 'line',
                 data: chartData.time.map((t, i) => [t, chartData.inflow[i]]),
                 smooth: true, symbol: 'none',
                 lineStyle: { color: '#ff5252', width: 2.5, shadowBlur: 8, shadowColor: 'rgba(255,82,82,0.4)' },
@@ -580,7 +580,7 @@ function drawChartResult(chartData) {
                 },
             },
             {
-                name: '出库流量', type: 'line',
+                name: '时段平均出库', type: 'line',
                 data: chartData.time.map((t, i) => [t, chartData.outflow[i]]),
                 smooth: true, symbol: 'none',
                 lineStyle: { color: '#00e676', width: 2.5, shadowBlur: 8, shadowColor: 'rgba(0,230,118,0.4)' },
