@@ -332,6 +332,12 @@ def run_flood_routing(zv_data, zq_data, flood_data, z_start, z0, dt, method):
     v_base = shuiku.ztov.get_y(z0) if z0 > 0 else v_start
     v_retention = v_max - v_base
 
+    # 图表数据：统一使用时段平均值（与成果表一致），避免瞬时值vs平均值混用
+    chart_times = [0.0] + [r['time'] for r in results]
+    chart_inflow = [qcome_cb[0]] + [r['inflow_avg'] for r in results]
+    chart_outflow = [0.0] + [r['outflow_avg'] for r in results]
+    chart_z = [z_start] + [r['z_end'] for r in results]
+
     return {
         'results': results,
         'summary': {
@@ -343,9 +349,9 @@ def run_flood_routing(zv_data, zq_data, flood_data, z_start, z0, dt, method):
             'v_retention': round(v_retention, 2),
         },
         'chart_data': {
-            'time': qt_cb,
-            'inflow': qcome_cb,
-            'outflow': q_out_cb,
-            'water_level': z_pro_cb,
+            'time': chart_times,
+            'inflow': chart_inflow,
+            'outflow': chart_outflow,
+            'water_level': chart_z,
         }
     }

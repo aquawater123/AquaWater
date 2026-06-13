@@ -204,7 +204,7 @@ function downloadCSV() {{
   var chart = echarts.init(document.getElementById('chart'));
   var option = {{
     tooltip: {{ trigger: 'axis', axisPointer: {{ type: 'cross' }} }},
-    legend: {{ data: ['入库流量','出库流量','水位'], textStyle: {{ color: '#c0e0f0' }}, top: 5 }},
+    legend: {{ data: ['时段平均入库','时段平均出库','水位'], textStyle: {{ color: '#c0e0f0' }}, top: 5 }},
     grid: {{ left: 65, right: 65, top: 50, bottom: 45 }},
     xAxis: {{
       type: 'category',
@@ -236,13 +236,13 @@ function downloadCSV() {{
     ],
     series: [
       {{
-        name: '入库流量', type: 'line', data: CHART_DATA.inflow,
+        name: '时段平均入库', type: 'line', data: CHART_DATA.inflow,
         smooth: true, symbol: 'none',
         lineStyle: {{ color: '#ff4444', width: 2 }},
         itemStyle: {{ color: '#ff4444' }}
       }},
       {{
-        name: '出库流量', type: 'line', data: CHART_DATA.outflow,
+        name: '时段平均出库', type: 'line', data: CHART_DATA.outflow,
         smooth: true, symbol: 'none',
         lineStyle: {{ color: '#44ff44', width: 2 }},
         itemStyle: {{ color: '#44ff44' }}
