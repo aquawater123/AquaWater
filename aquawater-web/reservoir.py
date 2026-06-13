@@ -13,13 +13,13 @@ class RelationLine:
         self.k = [(y[i + 1] - y[i]) / (x[i + 1] - x[i]) for i in range(n - 1)]
 
     def get_y(self, x):
-        """由自变量 x 求因变量 y"""
+        """由自变量 x 求因变量 y（低于下界时 clamp 到下界值，不外推——避免物理上不合理的负值）"""
         if self.x[0] <= x <= self.x[-1]:
             for i in range(1, self.n):
                 if x <= self.x[i]:
                     return self.k[i - 1] * (x - self.x[i - 1]) + self.y[i - 1]
         elif x < self.x[0]:
-            return (x - self.x[0]) * self.k[0] + self.y[0]
+            return self.y[0]  # 低于曲线范围：clamp 到最小 y（不外推）
         else:
             return (x - self.x[-1]) * self.k[-1] + self.y[-1]
 
@@ -28,13 +28,13 @@ class RelationLine:
         return max(y, 0)
 
     def get_x(self, y):
-        """由因变量 y 反查自变量 x"""
+        """由因变量 y 反查自变量 x（低于下界时 clamp 到下界值，不外推）"""
         if self.y[0] <= y <= self.y[-1]:
             for i in range(1, self.n):
                 if y <= self.y[i]:
                     return (y - self.y[i - 1]) / self.k[i - 1] + self.x[i - 1]
         elif y < self.y[0]:
-            return (y - self.y[0]) / self.k[0] + self.x[0]
+            return self.x[0]  # 低于曲线范围：clamp 到最小 x（不外推）
         else:
             return (y - self.y[-1]) / self.k[-1] + self.x[-1]
 
