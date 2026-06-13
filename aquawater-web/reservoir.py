@@ -334,14 +334,13 @@ def run_flood_routing(zv_data, zq_data, flood_data, z_start, z0, dt, method):
 
     # 图表数据：
     # - 入库/出库是时段平均值，画在时段中点 (t_i + dt/2)
-    # - 水位是瞬时值，画在原时间点上（时段初/末）
-    # - 共用时间轴时，水位取时段初末平均值画在中点，误差可忽略（dt小）
+    # - 水位是瞬时值，画在精确时间点上（qt_cb 各时刻）
+    # - 每条线自带 [x, y] 坐标，前端用 value 轴各自独立渲染
     half_dt = dt / 2.0
     chart_flow_time = [round(qt_cb[0] + half_dt + dt * i, 4) for i in range(qn_cb - 1)]
-    chart_inflow = [r['inflow_avg'] for r in results]
-    chart_outflow = [r['outflow_avg'] for r in results]
-    # 水位画在时段中点：取时段初末水位平均值
-    chart_z = [round((z_pro_cb[i] + z_pro_cb[i + 1]) / 2, 4) for i in range(qn_cb - 1)]
+    chart_inflow = [[chart_flow_time[i], r['inflow_avg']] for i, r in enumerate(results)]
+    chart_outflow = [[chart_flow_time[i], r['outflow_avg']] for i, r in enumerate(results)]
+    chart_z = [[round(qt_cb[i], 4), round(z_pro_cb[i], 4)] for i in range(qn_cb)]
 
     return {
         'results': results,
@@ -354,7 +353,6 @@ def run_flood_routing(zv_data, zq_data, flood_data, z_start, z0, dt, method):
             'v_retention': round(v_retention, 2),
         },
         'chart_data': {
-            'time': chart_flow_time,
             'inflow': chart_inflow,
             'outflow': chart_outflow,
             'water_level': chart_z,

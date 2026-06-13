@@ -49,17 +49,18 @@ def check_monotonic(data, name):
 
 def generate_chart_html(chart_data, summary, results, output_path):
     """生成独立的 ECharts 交互式图表 HTML 文件（含数据表+下载功能）"""
-    # 水位 Y 轴自适应范围（加 5% 边距）
-    z_vals = chart_data['water_level']
+    # 水位 Y 轴自适应范围（water_level 格式: [[t, z], ...]）
+    z_vals = [p[1] for p in chart_data['water_level']]
     z_min_data = min(z_vals)
     z_max_data = max(z_vals)
     z_range = z_max_data - z_min_data if z_max_data != z_min_data else 1.0
     z_axis_min = round(z_min_data - z_range * 0.08, 2)
     z_axis_max = round(z_max_data + z_range * 0.08, 2)
 
-    # 流量 Y 轴自适应范围
-    q_vals = chart_data['inflow'] + chart_data['outflow']
-    q_max_data = max(q_vals) if q_vals else 1
+    # 流量 Y 轴自适应范围（inflow/outflow 格式: [[t, q], ...]）
+    q_in = [p[1] for p in chart_data['inflow']]
+    q_out = [p[1] for p in chart_data['outflow']]
+    q_max_data = max(q_in + q_out) if (q_in or q_out) else 1
     q_axis_max = round(q_max_data * 1.08, 0)
 
     # 结果数据 JSON（嵌入页面供下载使用）
@@ -147,14 +148,11 @@ def generate_chart_html(chart_data, summary, results, output_path):
 <div class="footer">AquaWater 调洪演算程序 · 生成于 <span id="gen-time"></span></div>
 
 <script>
-// ===== 嵌入数据 =====
+// ===== 嵌入数据（各线自带 [x,y] 坐标）=====
 var RESULTS = {results_json};
-var CHART_DATA = {{
-  time: {json.dumps(chart_data['time'])},
-  inflow: {json.dumps(chart_data['inflow'])},
-  outflow: {json.dumps(chart_data['outflow'])},
-  water_level: {json.dumps(chart_data['water_level'])}
-}};
+var INFLOW = {json.dumps(chart_data['inflow'])};
+var OUTFLOW = {json.dumps(chart_data['outflow'])};
+var WATER_LEVEL = {json.dumps(chart_data['water_level'])};
 
 // ===== 渲染表格 =====
 (function renderTable() {{
@@ -199,7 +197,7 @@ function downloadCSV() {{
   URL.revokeObjectURL(url);
 }}
 
-// ===== 渲染图表 =====
+// ===== 渲染图表（value 轴，各线自带 [x,y] 独立坐标）=====
 (function renderChart() {{
   var chart = echarts.init(document.getElementById('chart'));
   var option = {{
@@ -207,11 +205,12 @@ function downloadCSV() {{
     legend: {{ data: ['时段平均入库','时段平均出库','水位'], textStyle: {{ color: '#c0e0f0' }}, top: 5 }},
     grid: {{ left: 65, right: 65, top: 50, bottom: 45 }},
     xAxis: {{
-      type: 'category',
-      data: CHART_DATA.time,
+      type: 'value',
       name: '时间 (h)',
       nameTextStyle: {{ color: '#6b9dc0' }},
-      axisLabel: {{ color: '#8aaccc' }}
+      axisLabel: {{ color: '#8aaccc' }},
+      splitLine: {{ lineStyle: {{ color: '#152040' }} }},
+      min: 0
     }},
     yAxis: [
       {{
@@ -236,19 +235,19 @@ function downloadCSV() {{
     ],
     series: [
       {{
-        name: '时段平均入库', type: 'line', data: CHART_DATA.inflow,
+        name: '时段平均入库', type: 'line', data: INFLOW,
         smooth: true, symbol: 'none',
         lineStyle: {{ color: '#ff4444', width: 2 }},
         itemStyle: {{ color: '#ff4444' }}
       }},
       {{
-        name: '时段平均出库', type: 'line', data: CHART_DATA.outflow,
+        name: '时段平均出库', type: 'line', data: OUTFLOW,
         smooth: true, symbol: 'none',
         lineStyle: {{ color: '#44ff44', width: 2 }},
         itemStyle: {{ color: '#44ff44' }}
       }},
       {{
-        name: '水位', type: 'line', yAxisIndex: 1, data: CHART_DATA.water_level,
+        name: '水位', type: 'line', yAxisIndex: 1, data: WATER_LEVEL,
         smooth: true, symbol: 'none',
         lineStyle: {{ color: '#ffaa00', width: 2.5 }},
         itemStyle: {{ color: '#ffaa00' }}

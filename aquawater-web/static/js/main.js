@@ -499,12 +499,15 @@ function drawChartResult(chartData) {
     $('#chartZQContainer').classList.add('hidden');
     $('#chartResultContainer').classList.remove('hidden');
 
-    // Compute ranges so axes fit data tightly
-    const zMin = Math.min(...chartData.water_level);
-    const zMax = Math.max(...chartData.water_level);
+    // Compute ranges (data is [[t,v],...] pairs)
+    const zVals = chartData.water_level.map(p => p[1]);
+    const zMin = Math.min(...zVals);
+    const zMax = Math.max(...zVals);
     const zRange = zMax - zMin;
-    const zPad = zRange * 0.08; // 8% padding
-    const qMax = Math.max(...chartData.inflow, ...chartData.outflow);
+    const zPad = zRange * 0.08;
+    const qIn = chartData.inflow.map(p => p[1]);
+    const qOut = chartData.outflow.map(p => p[1]);
+    const qMax = Math.max(...qIn, ...qOut);
 
     chart.setOption({
         backgroundColor: 'transparent',
@@ -526,12 +529,14 @@ function drawChartResult(chartData) {
             itemGap: 16
         },
         xAxis: {
+            type: 'value',
             name: '时间 (h)', nameLocation: 'center', nameGap: 30,
             nameTextStyle: { color: '#8899b4', fontSize: 12 },
             axisLine: { lineStyle: { color: 'rgba(0,229,255,0.15)' } },
             axisTick: { lineStyle: { color: 'rgba(0,229,255,0.15)' } },
             splitLine: { lineStyle: { color: 'rgba(0,229,255,0.05)' } },
-            axisLabel: { color: '#8899b4', fontSize: 11 }
+            axisLabel: { color: '#8899b4', fontSize: 11 },
+            min: 0
         },
         yAxis: [
             {
@@ -569,7 +574,7 @@ function drawChartResult(chartData) {
         series: [
             {
                 name: '时段平均入库', type: 'line',
-                data: chartData.time.map((t, i) => [t, chartData.inflow[i]]),
+                data: chartData.inflow,
                 smooth: true, symbol: 'none',
                 lineStyle: { color: '#ff5252', width: 2.5, shadowBlur: 8, shadowColor: 'rgba(255,82,82,0.4)' },
                 areaStyle: {
@@ -581,7 +586,7 @@ function drawChartResult(chartData) {
             },
             {
                 name: '时段平均出库', type: 'line',
-                data: chartData.time.map((t, i) => [t, chartData.outflow[i]]),
+                data: chartData.outflow,
                 smooth: true, symbol: 'none',
                 lineStyle: { color: '#00e676', width: 2.5, shadowBlur: 8, shadowColor: 'rgba(0,230,118,0.4)' },
                 areaStyle: {
@@ -593,7 +598,7 @@ function drawChartResult(chartData) {
             },
             {
                 name: '库水位', type: 'line', yAxisIndex: 1,
-                data: chartData.time.map((t, i) => [t, chartData.water_level[i]]),
+                data: chartData.water_level,
                 smooth: true, symbol: 'none',
                 lineStyle: { color: '#ffab00', width: 2.5, shadowBlur: 8, shadowColor: 'rgba(255,171,0,0.4)' },
                 areaStyle: {
