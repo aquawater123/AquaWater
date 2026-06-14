@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>给你的 Claude Code 装个「水文大脑」——水库调洪 Skill 使用指南</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body { background: #f5f5f5; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', sans-serif; color: #333; line-height: 1.8; }
+  .article { max-width: 680px; margin: 0 auto; background: #fff; padding: 30px 20px 50px; }
+  h1 { font-size: 22px; font-weight: 700; color: #111; text-align: center; margin-bottom: 6px; line-height: 1.4; }
+  .meta { text-align: center; color: #999; font-size: 13px; margin-bottom: 24px; }
+  h2 { font-size: 18px; font-weight: 700; color: #222; margin: 36px 0 14px; padding-left: 12px; border-left: 4px solid #1a73e8; }
+  p { font-size: 15px; margin-bottom: 14px; text-align: justify; }
+  img { max-width: 100%; border-radius: 6px; box-shadow: 0 2px 10px rgba(0,0,0,0.08); margin: 10px 0; display: block; }
+  .img-caption { text-align: center; color: #888; font-size: 13px; margin-top: -4px; margin-bottom: 16px; }
+  code { background: #f0f0f0; padding: 2px 6px; border-radius: 3px; font-size: 0.9em; font-family: 'Cascadia Code', 'Fira Code', 'Consolas', monospace; color: #d63384; }
+  pre { background: #1e1e2e; color: #cdd6f4; padding: 18px 20px; border-radius: 8px; overflow-x: auto; font-size: 13px; line-height: 1.6; margin: 12px 0; }
+  pre .cmd { color: #89b4fa; }
+  pre .out { color: #a6e3a1; }
+  pre .hl { color: #fab387; }
+  pre .dim { color: #6c7086; }
+  blockquote { background: #f8f9fb; border-left: 4px solid #e0e4e8; padding: 12px 16px; margin: 14px 0; color: #555; font-size: 14px; border-radius: 0 6px 6px 0; }
+  table { width: 100%; border-collapse: collapse; margin: 14px 0; font-size: 14px; }
+  th { background: #f0f4f8; padding: 10px 12px; text-align: left; font-weight: 600; border-bottom: 2px solid #dde4ea; }
+  td { padding: 8px 12px; border-bottom: 1px solid #eef1f5; }
+  .tag { display: inline-block; background: #e8f0fe; color: #1a73e8; padding: 2px 8px; border-radius: 4px; font-size: 12px; font-weight: 500; margin-right: 4px; }
+  .divider { text-align: center; color: #ccc; margin: 30px 0; font-size: 18px; letter-spacing: 8px; }
+  @media (max-width: 480px) {
+    .article { padding: 20px 14px 40px; }
+    h1 { font-size: 18px; }
+  }
+</style>
+</head>
+<body>
+<div class="article">
+
+<h1>给你的 Claude Code 装个「水文大脑」<br>水库调洪 Skill 使用指南</h1>
+<div class="meta">AquaWater · 2026-06-14</div>
+
+<blockquote>
+  一个用了十年的水库调洪演算程序，先被 AI 辅助重写成 Web 应用，又被"炼化"成了 Claude Code Skill——现在只需要在终端里说一句"水库调洪"，AI 就帮你完成专业水文计算。
+</blockquote>
+
+<!-- ====== 来历 ====== -->
+<h2>从 C# 到 Web，再到 Skill</h2>
+
+<p>这个程序的起点是一个 C# WinForms 桌面软件，在 Windows 上跑了十来年。功能不差——库容曲线、泄流曲线、洪水过程线三条数据进去，三种演算方法任选，结果表格加图表出来——但它有个致命伤：<strong>只能在 Windows 上跑</strong>，换个电脑就得重新编译部署，分享给同事还得打包发邮件。</p>
+
+<p>去年用 AI 辅助，把核心算法从 C# 移植到了 Python，配上了 Flask + ECharts 的 Web 界面，部署到阿里云，浏览器就能用。这一步解决了跨平台和分享的问题。</p>
+
+<p>但还不够——每次用还得打开浏览器、上传文件、填参数。能不能更自然一点？</p>
+
+<p>于是有了第三步：<strong>炼化成 Claude Code Skill</strong>。</p>
+
+<!-- ====== 什么是 Skill ====== -->
+<h2>什么是"炼化"？</h2>
+
+<p>Claude Code 的 Skill 机制，本质上是把专业知识、算法脚本、示例数据打成一个包，让 AI 在需要时自动加载。对用户来说，你不再需要"打开某个软件、点某个按钮、填某个参数"——你在终端里说你要做什么，AI 自己就知道该跑什么脚本、该问你什么参数。</p>
+
+<p>这个 Skill 的内部结构：</p>
+
+<pre><span class="dim">aquawater-flood-routing.skill  （本质是一个 zip 包）
+├── SKILL.md</span>                  <span class="dim"># 告诉 Claude：何时触发、怎么工作</span>
+<span class="dim">├── scripts/
+│   ├── reservoir.py</span>          <span class="dim"># 核心算法：三种演算方法</span>
+<span class="dim">│   ├── calculate.py</span>          <span class="dim"># CLI 包装 + 图表生成</span>
+<span class="dim">│   └── sample_data/</span>          <span class="dim"># 示例数据，开箱即跑</span>
+<span class="dim">└── assets/</span>                   <span class="dim"># 图表模板</span></pre>
+
+<p><code>SKILL.md</code> 是"大脑"——定义了触发词（调洪演算、水库调洪、洪水调节……）、工作流程（先问数据、再设参数、然后计算、最后出图）、以及硬约束（数据必须单调、泄流不能为负）。<code>reservoir.py</code> 是"心脏"——从 C# 一行行翻译过来的水量平衡算法，包含积分法（专利公式）、龙格库塔法（四阶）和迭代法（二分）三种方法。整套不到 20KB。</p>
+
+<!-- ====== 安装 ====== -->
+<h2>安装</h2>
+
+<p>打开终端（macOS/Linux 用 Terminal，Windows 用 Git Bash 或 WSL），复制下面一行，回车：</p>
+
+<pre style="user-select:all; cursor:pointer;" onclick="navigator.clipboard.writeText('curl -o ~/.claude/skills/aquawater-flood-routing.skill https://github.com/aquawater123/AquaWater/releases/download/v1.0.0/aquawater-flood-routing.skill')" title="点击复制"><span class="cmd">curl -o ~/.claude/skills/aquawater-flood-routing.skill https://github.com/aquawater123/AquaWater/releases/download/v1.0.0/aquawater-flood-routing.skill</span></pre>
+
+<p>重启 Claude Code，生效。<strong>点击上面代码块可直接复制。</strong></p>
+
+<!-- ====== 使用 ====== -->
+<h2>使用</h2>
+
+<p>在 Claude Code 中输入<strong>"水库调洪"</strong>，Skill 自动加载，交互式引导你完成计算：</p>
+
+<img src="screenshots/skill_terminal.png" alt="Claude Code 调用水库调洪 Skill">
+<div class="img-caption">▲ 说"水库调洪"，Skill 自动加载，引导你给数据、设参数</div>
+
+<p>Claude 会依次问你：库容曲线在哪？泄流曲线呢？洪水过程线？起调水位多少？你只需给文件路径和数字，剩下的全自动——算完输出特征值摘要（最高水位、最大泄流、滞洪库容）、逐时段成果表，还能一键生成交互图表和 CSV 数据。</p>
+
+<img src="screenshots/standalone_chart.png" alt="Skill 生成的 ECharts 交互图表">
+<div class="img-caption">▲ Skill 生成的独立交互图表：三曲线双Y轴，含完整数据表+CSV下载</div>
+
+<p>想换演算方法？说一句"用龙格库塔法"。想加防洪限制水位？告诉它数字。团队协作？把 Skill 放到项目 <code>.claude/skills/</code> 目录，全员共用同一套算法，计算结果口径统一。</p>
+
+<!-- ====== 技术细节 ====== -->
+<h2>技术细节</h2>
+
+<p>Skill 封装了三种主流演算方法，核心是水量平衡方程 <code>dV/dt = I(t) - Q(Z)</code>：</p>
+
+<table>
+  <tr><th>方法</th><th>原理</th><th>特点</th></tr>
+  <tr><td><span class="tag">积分法</span> 专利公式</td><td>S-Q 近似线性求解析解</td><td>⭐ 默认推荐，速度快精度高</td></tr>
+  <tr><td><span class="tag">龙格库塔法</span> 四阶</td><td>经典 RK4 数值求解 ODE</td><td>理论严密，适合高精度需求</td></tr>
+  <tr><td><span class="tag">迭代法</span> 二分</td><td>猜试水位逐次收敛</td><td>思路直观，适合教学验证</td></tr>
+</table>
+
+<p>几个水利人关心的细节：汛限水位逻辑（低于汛限闸门关闭 Q=0，填库到汛限才泄流，回落不低于汛限）；杜绝负泄流（起调水位低于泄流曲线零点时，出库 clamp 为 0，而非外推产生负值）；图表入库/出库统一用时段平均值画在时段中点、水位用瞬时值画在精确时间点——三条曲线各自独立坐标。</p>
+
+<div class="divider">···</div>
+
+<p>从一个 Windows 专用的 C# 桌面程序，到浏览器里随处可用的 Web 应用，再到终端里一句话就能调用的 AI Skill——这个老程序的三次生命，每次都是被新的技术形态"逼"出来的。AI 时代，专业的尽头可能不是一个更好用的软件，而是你根本不需要"打开软件"。</p>
+
+<p>GitHub：<a href="https://github.com/aquawater123/AquaWater" target="_blank">github.com/aquawater123/AquaWater</a></p>
+
+</div>
+</body>
+</html>

@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<style>
+  * { margin:0; padding:0; box-sizing:border-box; }
+  body { background: #0d1117; font-family: 'Cascadia Code', 'Fira Code', 'Consolas', monospace; padding: 40px; display:flex; justify-content:center; }
+  .terminal { width: 780px; background: #0d1117; border: 1px solid #30363d; border-radius: 8px; overflow: hidden; }
+  .titlebar { background: #161b22; padding: 8px 16px; display:flex; align-items:center; gap:8px; border-bottom:1px solid #30363d; }
+  .dot { width:12px; height:12px; border-radius:50%; }
+  .dot.r { background:#ff5f56; } .dot.y { background:#ffbd2e; } .dot.g { background:#27c93f; }
+  .titlebar span { color: #8b949e; font-size:12px; margin-left:8px; }
+  .body { padding: 20px 24px; font-size: 13px; line-height: 1.8; }
+  .prompt { color: #58a6ff; }
+  .user { color: #7ee787; }
+  .cmd { color: #f0f6fc; }
+  .skill-tag { display: inline-block; background: #1f6feb33; border: 1px solid #1f6feb; color: #58a6ff; padding: 1px 8px; border-radius: 12px; font-size: 11px; margin: 4px 0; }
+  .output { color: #8b949e; }
+  .result { color: #79c0ff; }
+  .highlight { color: #ff7b72; }
+  .cursor { animation: blink 1s step-end infinite; }
+  @keyframes blink { 50% { opacity:0; } }
+  table { border-collapse: collapse; margin: 8px 0; }
+  td { padding: 2px 16px 2px 0; color: #c9d1d9; font-size: 12px; }
+  td:first-child { color: #8b949e; }
+  td:last-child { color: #79c0ff; font-weight: bold; }
+  .divider { color: #30363d; margin: 12px 0; }
+</style>
+</head>
+<body>
+<div class="terminal">
+  <div class="titlebar">
+    <div class="dot r"></div><div class="dot y"></div><div class="dot g"></div>
+    <span>Claude Code — aquawater@AquaWater</span>
+  </div>
+  <div class="body">
+    <div><span class="prompt">user</span> <span class="cmd">&gt;</span> 帮我做一次水库调洪演算。库容曲线和泄流曲线在 data/ 目录下，洪水过程线用的P=5%设计洪水，起调水位1024m，用专利公式算。</div>
+    <div style="height:8px"></div>
+    <div><span class="skill-tag">📦 Skill: 水库调洪</span></div>
+    <div style="height:4px"></div>
+    <div><span class="output">Claude</span> <span class="cmd">&gt;</span> <span class="output">正在读取数据文件并执行调洪演算...</span></div>
+    <div style="height:4px"></div>
+    <div><span class="output">$ python scripts/calculate.py --zv data/库容曲线.txt --zq data/泄流.txt </span></div>
+    <div><span class="output">  --flood data/P=5%洪水过程线.txt --z-start 1024 --dt 0.1 --method 0 --chart result.html</span></div>
+    <div style="height:12px"></div>
+    <div class="divider">═══════════════════════════════════════════</div>
+    <div style="color:#e3b341; font-size:15px; margin:8px 0;">🌊 水库调洪演算成果 — 积分法(专利公式)</div>
+    <div class="divider">═══════════════════════════════════════════</div>
+    <table>
+      <tr><td>起调水位</td><td>1024.00 m</td></tr>
+      <tr><td>起调库容</td><td>882.40 万m³</td></tr>
+      <tr><td style="color:#ff7b72;">调洪最高水位 ▲</td><td style="color:#ff7b72;">1029.67 m</td></tr>
+      <tr><td>调洪最大库容</td><td>1277.48 万m³</td></tr>
+      <tr><td>调洪最大下泄流量</td><td>854.63 m³/s</td></tr>
+      <tr><td>滞洪库容</td><td>395.08 万m³</td></tr>
+    </table>
+    <div class="divider">───────────────────────────────────────────</div>
+    <div style="color:#8b949e; font-size:12px;">计算步数: 582 步 | 水位涨幅: +5.67m | 峰值时刻: t=12.0h</div>
+    <div style="color:#8b949e; font-size:12px;">图表已保存: result.html | 可下载: 调洪成果.csv</div>
+    <div style="height:8px"></div>
+    <div><span class="prompt">user</span> <span class="cmd">&gt;</span><span class="cursor">█</span></div>
+  </div>
+</div>
+</body>
+</html>
